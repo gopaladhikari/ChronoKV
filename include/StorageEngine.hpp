@@ -47,19 +47,19 @@ public:
   bool exists(const std::string &key) const;
 
   // attach expiration time to existing entry
-  bool expire(std::string &key, long long seconds);
+  bool expire(const std::string &key, const long long seconds) const;
 
   // return remaining ttl in seconds
-  long long ttl(std::string &key) const;
+  long long ttl(const std::string &key) const;
 
   // Returns total number of active keys
   std::size_t size() const;
 
   // Returns total number of purged keys since engine startup
-  std::size_t purgedCount() const;
+  std::size_t purgedCount() const noexcept;
 
   // Exposes a read-only reference to the internal map for SnapshotManager binary serialization
-  std::unordered_map<std::string, Entry> &rawData() const;
+  const std::unordered_map<std::string, Entry> &rawData() const noexcept;
 
   // Inserts a pre-built Entry directly into RAM during SnapshotManager binary recovery
   void loadRawEntry(const std::string &key, Entry entry);
