@@ -47,7 +47,7 @@ public:
   bool exists(const std::string &key) const;
 
   // attach expiration time to existing entry
-  bool expire(const std::string &key, const long long seconds) const;
+  bool expire(const std::string &key, const long long seconds);
 
   // return remaining ttl in seconds
   long long ttl(const std::string &key) const;
