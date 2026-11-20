@@ -2,10 +2,9 @@
 
 #include <chrono>
 #include <string>
-#include <optional>
 #include <unordered_map>
 #include <vector>
-#include <cstddef>
+// #include <cstddef>
 
 class StorageEngine
 {
@@ -17,7 +16,7 @@ public:
   struct Entry
   {
     std::string value;
-    std::optional<TimePoint> expiresAt;
+    TimePoint expiresAt;
   };
 
 private:
@@ -28,20 +27,20 @@ private:
   mutable std::size_t expiredPurgedCount = 0;
 
   // check if entry has been expired.
-  bool isExpired(const Entry &entry) const noexcept;
+  bool isExpired(const std::string &key) const;
 
   // delete the expired entry
-  void evictIfExpired(const std::string &key) const;
+  bool evictIfExpired(const std::string &key) const;
 
 public:
-  // insert a entry without expiration
+  // insert a entry with 1H expiry.
   void set(const std::string &key, const std::string &value);
 
   // delete the expired entries and returns the active keys
   std::vector<std::string> keys() const;
 
   // returns the value if entry is not expired
-  std::optional<std::string> get(const std::string &key) const;
+  std::string get(const std::string &key) const;
 
   // Returns true if the key exists and has not expired
   bool exists(const std::string &key) const;

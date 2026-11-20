@@ -1,23 +1,55 @@
-
-#include <iostream>
 #include "StorageEngine.hpp"
-#include <chrono>
-#include <string>
-#include <optional>
-#include <unordered_map>
+#include <stdexcept>
 
-using Clock = std::chrono::steady_clock;
-using TimePoint = Clock::time_point;
-
-struct Entry
+bool StorageEngine::evictIfExpired(const std::string &key) const
 {
-  std::string value;
-  std::optional<TimePoint> expiresAt;
-};
+  if (key.empty())
+    throw std::invalid_argument("Invalid key.");
 
-class StorageEngine
+  auto it = store.find(key);
+
+  if (it == store.end())
+    return false;
+
+  if (Clock::now() >= it->second.expiresAt)
+  {
+    store.erase(key);
+    ++expiredPurgedCount;
+    return true;
+  }
+  return false;
+}
+
+bool StorageEngine::isExpired(const std::string &key) const
 {
-private:
-  mutable std::unordered_map<std::string, Entry> store;
-  mutable std::size_t expiredPurgedCount_ = 0;
-};
+  if (key.empty())
+    throw std::invalid_argument("Invalid key.");
+
+  auto it = store.find(key);
+
+  if (it == store.end())
+    return false;
+
+  if (Clock::now() >= it->second.expiresAt)
+    return true;
+
+  return false;
+}
+
+void StorageEngine::set(const std::string &key, const std::string &value)
+{
+  if (key.empty())
+    throw std::invalid_argument("Invalid key.");
+
+  auto expiry = Clock::now() + std::chrono::hours(1);
+
+  store.insert_or_assign(key, Entry{value, expiry});
+}
+
+bool StorageEngine::exists(const std::string &key) const
+{
+
+  StorageEngine::evictIfExpired(key);
+
+  return store.find(key) != store.end();
+}
