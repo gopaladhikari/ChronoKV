@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 // #include <cstddef>
+#include <optional>
 
 class StorageEngine
 {
@@ -26,21 +27,15 @@ private:
   // track how many entry has been deleted automatically on expiration
   mutable std::size_t expiredPurgedCount = 0;
 
-  // check if entry has been expired.
-  bool isExpired(const std::string &key) const;
-
-  // delete the expired entry
-  bool evictIfExpired(const std::string &key) const;
-
 public:
   // insert a entry with 1H expiry.
   void set(const std::string &key, const std::string &value);
 
-  // delete the expired entries and returns the active keys
-  std::vector<std::string> keys() const;
-
   // returns the value if entry is not expired
-  std::string get(const std::string &key) const;
+  std::optional<std::string> get(const std::string &key) const;
+
+  // Find the valid entry and return the memeory reference.
+  const Entry *findValidEntry(const std::string &key) const;
 
   // Returns true if the key exists and has not expired
   bool exists(const std::string &key) const;

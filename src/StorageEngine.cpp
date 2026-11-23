@@ -1,7 +1,7 @@
 #include "StorageEngine.hpp"
 #include <stdexcept>
 
-bool StorageEngine::evictIfExpired(const std::string &key) const
+const StorageEngine::Entry *StorageEngine::findValidEntry(const std::string &key) const
 {
   if (key.empty())
     throw std::invalid_argument("Invalid key.");
@@ -9,31 +9,16 @@ bool StorageEngine::evictIfExpired(const std::string &key) const
   auto it = store.find(key);
 
   if (it == store.end())
-    return false;
+    return nullptr;
 
   if (Clock::now() >= it->second.expiresAt)
   {
-    store.erase(key);
+    store.erase(it);
     ++expiredPurgedCount;
-    return true;
+    return nullptr;
   }
-  return false;
-}
 
-bool StorageEngine::isExpired(const std::string &key) const
-{
-  if (key.empty())
-    throw std::invalid_argument("Invalid key.");
-
-  auto it = store.find(key);
-
-  if (it == store.end())
-    return false;
-
-  if (Clock::now() >= it->second.expiresAt)
-    return true;
-
-  return false;
+  return &(it->second);
 }
 
 void StorageEngine::set(const std::string &key, const std::string &value)
@@ -49,7 +34,16 @@ void StorageEngine::set(const std::string &key, const std::string &value)
 bool StorageEngine::exists(const std::string &key) const
 {
 
-  StorageEngine::evictIfExpired(key);
+  return findValidEntry(key) != nullptr;
+}
 
-  return store.find(key) != store.end();
+std::optional<std::string> StorageEngine::get(const std::string &key) const
+
+{
+  const StorageEngine::Entry *entryPtr = findValidEntry(key);
+
+  if (entryPtr == nullptr)
+    return std::nullopt;
+
+  return entryPtr->value;
 }
