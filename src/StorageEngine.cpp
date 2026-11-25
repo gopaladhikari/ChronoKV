@@ -6,7 +6,7 @@ const StorageEngine::Entry *StorageEngine::findValidEntry(const std::string &key
   if (key.empty())
     throw std::invalid_argument("Invalid key.");
 
-  auto it = store.find(key);
+  std::unordered_map<std::string, Entry>::iterator it = store.find(key);
 
   if (it == store.end())
     return nullptr;
@@ -46,4 +46,29 @@ std::optional<std::string> StorageEngine::get(const std::string &key) const
     return std::nullopt;
 
   return entryPtr->value;
+}
+
+const StorageEngine::Entry *StorageEngine::expire(const std::string &key, const long long seconds)
+{
+  if (key.empty())
+    throw std::invalid_argument("Invalid key.");
+
+  if (seconds <= 0)
+    throw std::invalid_argument("Invalid ttl.");
+
+  std::unordered_map<std::string, Entry>::iterator it = store.find(key);
+
+  if (it == store.end())
+    return nullptr;
+
+  if (Clock::now() >= it->second.expiresAt)
+  {
+    store.erase(it);
+    ++expiredPurgedCount;
+    return nullptr;
+  }
+
+  it->second.expiresAt = Clock::now() + std::chrono::seconds(seconds);
+
+  return &(it->second);
 }
