@@ -6,7 +6,7 @@ const StorageEngine::Entry *StorageEngine::findValidEntry(const std::string &key
   if (key.empty())
     throw std::invalid_argument("Invalid key.");
 
-  std::unordered_map<std::string, Entry>::iterator it = store.find(key);
+  std::unordered_map<std::string, StorageEngine::Entry>::iterator it = store.find(key);
 
   if (it == store.end())
     return nullptr;
@@ -56,7 +56,7 @@ const StorageEngine::Entry *StorageEngine::expire(const std::string &key, const 
   if (seconds <= 0)
     throw std::invalid_argument("Invalid ttl.");
 
-  std::unordered_map<std::string, Entry>::iterator it = store.find(key);
+  std::unordered_map<std::string, StorageEngine::Entry>::iterator it = store.find(key);
 
   if (it == store.end())
     return nullptr;
